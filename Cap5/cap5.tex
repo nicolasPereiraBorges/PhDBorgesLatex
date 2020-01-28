@@ -1,0 +1,195 @@
+This chapter presents how simulations for model validation were performed, describing the setup, the evaluation metrics and the results achieved. 
+
+\section{Experimental Setup}
+
+The proposed control strategy was validated by experiments using a simulation model developed in MATLAB\textsuperscript{\textregistered} R2017a. The simulations were performed using a time step of $1$ second, considering as the maximum simulation time of $3,000$ seconds. In practice, in our scenario, the UAVS always reached the goal before the maximum simulation time. The scenarios are composed of a start and a goal positions distant approximately $17,000$ meters from each other, UAVs and threats. The UAVs range for communication and RWR is $200$ meters, and for threats, the detection range is $800$ meters. 
+
+Regarding the quantity of threats, three sets of scenarios, in which the threats are randomly deployed, simulating distinct levels of hostility of the environment, are considered. The number of threats for each set is 2, 8 and 16, for low, medium and high hostility level, respectively. Figure \ref{fig:hostilityLevel} shows one example of scenario for each level of hostility.
+
+\begin{figure}[hbt!]
+      \centering            
+      \subfloat[Example of scenario with low level of hostility. ]{\includegraphics[width=0.6\textwidth]{Figures/scenario1.eps}}      \\ \centering
+      \subfloat[Example of scenario with medium level of hostility]{\includegraphics[width=0.6\textwidth]{Figures/scenario2.eps}} \\ \centering
+      \subfloat[Example of scenario with high level of hostility.]{{\includegraphics[width=0.6\textwidth]{Figures/scenario3.eps}}}      
+      \caption{Hostility level of scenarios.}
+      \label{fig:hostilityLevel}
+\end{figure}
+
+We vary the number of UAVs that composes the network in $5$, $10$ and $30$. The motivation of this relies on the fact that a specific amount of UAVs may not be available for performing a mission, thus it is important to evaluate the model with different network sizes. Considering that the variation of the threat displacement is more relevant than the UAVs start positioning, the UAVs networks start always with the same topology. The positioning of the UAVs, however, must result in a value of algebraic connectivity $\lambda > \epsilon$ in order to be possible to activate the connectivity maintenance control law adopted in this work. Figure \ref{fig:startPositionUavs} shows the initial network topology of the UAVs and its respective values of $\lambda$.
+
+\begin{figure}[hbt!]
+      \centering            
+      \subfloat[Network with 5 UAVs. $\lambda=0.2758$. ]{\includegraphics[width=0.49\textwidth]{Figures/5_UAVs.PNG}}  
+      \subfloat[Network with 10 UAVs. $\lambda=0.2589$.]{\includegraphics[width=0.49\textwidth]{Figures/10_UAVs.PNG}} \\ \centering
+      \subfloat[Network with 30 UAVs. $\lambda=0.2774$.]{{\includegraphics[width=0.5\textwidth]{Figures/30_UAVs.PNG}}}    
+      \caption{Initial network topologies.}
+      \label{fig:startPositionUavs}
+\end{figure}
+
+Each simulation setup with $5$ UAVs encompasses $400$ instances of randomly deployed threats, with 10 UAVs, $200$ instances and with $30$ UAVs, $100$ instances. Thus, the results presented here are in average of $400$, $200$ and $100$ iterations, varying the number of UAVs in $5$, $10$ and $30$, respectively. 
+
+Since the UAVs must fly in the direction of the goal, regardless if they are using the stealth approach or not, the path planning control law needs to be active all the time. Therefore, the adaptive gain $\tau=1$ for all the simulations. The linear speed gain for path planning, coverage improvement and robustness improvement control laws are $k_{u_i^p}=0.8$,  $k_{u_i^c}=0.4$ and $k_{u_i^r}=0.08$ respectively. With regard to the connectivity maintenance control law, we use $\epsilon=0.2$. The minimum distance between the UAVs avoiding collision is $25$ meters. The distance from current UAV position from the next position according to the path planned is $30$ meters. Notice that we do  not intend to optimize these parameters to maximize the effect of a specific control law. With regard to the study of the impact of the variation of the adaptive gains to the combined control law approach, gains for connectivity maintenance and robustness to failures improvement control laws were fairly discussed in \cite{ghedini_2016_dars, ghedini_2016}.
+
+The number of edges used in RRT, for each path planning, was $1,500$, except for the case that the UAV is estimating the path of the neighbors during the procedure for calculating the goal to leave threats. In this case, the number of edges used in RRT was $300$. The angle range for valid movements of UAVs during the flight path computation is [$-\pi/3$, $\pi/3$]. The threshold for the similarity metric is 200 meters and the maximum number of iterations for the reference path matching procedure is limited to 5. 
+
+\section{Evaluation metrics}
+
+This section describes the metrics for evaluating the proposed model. Considering that our model uses a combination of different control laws, a single metric would not provide a detailed analysis of the effect of control laws. Then, each of the control laws were evaluated separately, which are: stealth level, coverage area rate, algebraic connectivity and robustness level.
+
+In the case of the stealth level, the evaluation occurs when the simulation is over. On the other hand, considering that several simulations are performed and that, in each of them, the UAVs moves along a different path, due to the different positioning of threats and the RRT algorithm, the metrics coverage area rate, algebraic connectivity and robustness level were averaged. This average is calculated considering the simulation interval $[t_{start}, t_{end}]$, where $t_{start}$ and $t_{end}$ represents the iteration in which the simulation is started and finished, respectively. We consider that $t_{start}=1$.
+
+Notice that if an UAV turns off its communication radar or reaches the goal position, it is not part of the network and it is not considered for calculating the coverage area rate, algebraic connectivity and robustness level until it turns its radar on again. The evaluation metrics are addressed as follows.
+
+\subsection{Stealth level}
+
+The proposed model embraces a stealth policy for detection and avoidance of threats. One way to evaluate the stealth level consists in evaluating the fraction of scenarios in which at least a single UAV reached the goal without being detected \cite{borges_2017}. However, this metric has some limitations, such as the fact that the fraction of UAVs that reached the goal without being detected and the fraction of threats that detected UAVs are not considered in the equation.
+
+In this direction, we adopt a different metric, that overcomes these limitations. Firstly, for each UAV $u_i$, the fraction of threats $f_i$ that not detected $u_i$ is computed. Then, we calculate the average of $f_i$, considering all the UAVs. The equation that describes the stealth level $\delta$ of an UAV network composed of $n$ UAVs is presented as follows.
+
+\begin{equation}
+    \delta = \frac{\sum_{i=1}^{n} f_i}{n}
+\end{equation}
+
+This metric assumes values in the range $[0,1]$. The closer the value is to $1$, the higher the stealth level of the network. Notice that this metric gives the same relevance for the number of UAVs that has been detected and the number of threats that detects an UAV because.
+
+\subsection{Algebraic connectivity $\lambda$}
+
+Connectivity plays an essential role for the cooperation between UAVs and Sabattini \textit{et. al.} \cite{sabattiniijrr2013} describes an approach for maintaining the network connectivity relying on the algebraic connectivity $\lambda$ estimation. It is used for evaluating the connectivity maintenance performance in our system. The equations for calculating $\lambda$ were detailed in Section \ref{sec:connectivity}. 
+
+\subsection{Coverage area rate}
+
+For analyzing the effect of the coverage area mechanism on the network topology, a technique to estimate the coverage rate, proposed by Kashi and Sharifi \cite{kashi_2012} was applied. It consists of identifying the boundaries of each node's neighboring network. Each boundary is then classified as network outline, holes, and stains. The area comprising each type of boundary is then computed considering the polygon made by nodes inside each boundary. The total area is the sum of each boundary type, where holes are negative values and areas of stains and the network boundary are positive ones.
+
+\subsection{Robustness level}
+
+Regarding robustness to failures, its well known that the UAVs can leave the network by turning off the communication radar on hostile environments or being destroyed by anti-air defenses during missions, especially military ones. In this direction,  Ghedini \textit{et. al.} \cite{ghedini_2016} proposes a way for evaluating the robustness level of a network, taking into account the fraction of central nodes that need to be removed from the network to obtain a disconnected network. This metric was adopted here and is detailed in Section \ref{sec:robustness}.
+
+\section{Results}
+
+This section presents and discuss the results achieved with the experiments. These were divided according to the two flight approaches, which are the trail formation and the unstructured flight approach.
+
+\subsection{Trail formation}
+
+The trail formation is intended to minimize the exposure of the UAVs by making most of them flying according to the same path. In this sense, the control laws for coverage and robustness improvement are not applicable to this kind of flight approach, otherwise the structure of the formation flight will be undone. Therefore, for evaluating the trail formation, the value of the adaptive gains $\rho$ and $\phi$ are $0$. 
+
+On the other hand, the control law for connectivity maintenance is applicable, especially in the case that two UAVs are establishing connection. However, the approach that we adopt in this work has as limiting factor the value of the algebraic connectivity $\lambda$ of the network. As aforementioned, case $\lambda < \epsilon$  the connectivity maintenance control law cannot be performed. Thus, considering that the trail formation results in a lower value of $\lambda$, especially for large size of networks, since each UAV is connected at most with two neighbours, the control law for connectivity maintenance cannot also be performed. Moreover, for a scenario in which the initial value of $\lambda > \epsilon$, the control law would not allow the UAVs to organize themselves in line, since its mathematically proved by Sabattini \textit{et. al.} \cite{sabattiniijrr2013} that, given an initial value of $\lambda > \epsilon$, the inequality will be perpetuated over time. 
+
+Therefore, it is more relevant evaluates the impact of the stealth policy on the trail formation than evaluating the effect of the connectivity maintenance control law. Then, for this setup the value of the adaptive gain $\sigma=0$ and the UAVs start displaced on a horizontal line distant $150$ from each others. For evaluating the stealth level simulations are performed over two perspectives: without the stealth policy i.e., the UAVs fly without a threat detection and avoidance policy and therefore, they never turn of the communication radar. The other simulation occurs with the stealth approach. For that, when the stealth approach is active $\psi=1$ and for the case that is inactive $\psi=0$ and the only evaluation metric that we will use to analyze the trail formation is the stealth level.
+
+Analyzing the results, it is possible to note that, when the stealth approach is active, the stealth level of the network significantly increases, regardless of the hostility of the scenario. Therefore, by using this approach, the chance of an mission performed on hostile environment to be successful increases. Considering simulations performed with 5 UAVs, the stealth level of the network increases in $57.80\%$, $30.95\%$ and $18.43\%$ for scenarios with low, medium and high level of hostility, respectively. For 10 UAVs, the stealth level of the network increases in $54.60\%$, $38.64\%$ and $24.57\%$ and in the case of simulations performed with 30 UAVs, $58.80\%$, $42.61\%$ and $28.37\%$. The main reason for this relies on the characteristic of the trail formation. The UAV that is detected by a threat is normally the leader. Thus, without using a stealth approach, case the leader is exposed to a threat, the wingmen are likely to be exposed too, since they are following the leader. For that, as long as the size of the network increases, the difference between the stealth level obtained with and without the stealth policy also increases. Figure \ref{fig:Trail_stealthLevel} shows the stealth level of the networks with $5$, $10$ and $30$ UAVs.
+
+\begin{figure}[hbt!]
+      \centering            
+      \subfloat[Network with 5 UAVs. ]{\includegraphics[width=0.49\textwidth]{Figures/trail_stealth_5.eps}} 
+      \subfloat[Network with 10 UAVs. ]{\includegraphics[width=0.49\textwidth]{Figures/trail_stealth_10.eps}}   \\ \centering
+      \subfloat[Network with 30 UAVs.]{{\includegraphics[width=0.49\textwidth]{Figures/trail_stealth_30.eps}}  }    
+      \caption{Stealth level using the trail formation.}
+      \label{fig:Trail_stealthLevel}
+\end{figure}
+
+Notice that, when the hostility level of the environment increases, the stealth level of the network also increases, for the case in which $\psi=0$. Thus, for high level of hostility, the discrepancy of the stealth level for simulations performed with and without the stealth policy reduces, compared to a scenario with low level of hostility. This occurs because the threats are randomly displaced in the scenario. Therefore, the fraction of threats that detect UAVs reduces as long as the number of the threats increases, since the UAVs are moving to the goal trough the shortest path.
+
+\subsection{Unstructured flight approach}
+
+The unstructured flight approach, instead of the trail formation, allows the UAVs to flight according different purposes, for instance, to improve the coverage area or the robustness to failures. In this direction, the analyses of the unstructured flight approach consists in evaluating the impact of different control laws for the stealthiness of the network. The results are discussed as follows.
+
+\subsubsection{Stealth policy and connectivity maintenance evaluation}
+
+Ensuring the connectivity between UAVs is essential to a cooperative approach. However, in a scenario that UAVs can turn off their communication radar at any time the connectivity cannot be ensured. In order to demonstrate the importance of the connectivity maintenance control law, this analysis aims to evaluate the impact of this control for the unstructured flight approach. In this direction, as the same way that occurs in the trail formation, two kind of simulations were simulated: without the stealth approach ($\psi=0$) and with the stealth approach ($\psi=1$). For the case when $\psi=1$ we performed experiments with the connectivity maintenance control active ($\sigma=75$) and  inactive ($\sigma=0$). The simulations with the adaptive gains $\psi=0$ and $\sigma=75$ were not performed, due to the fact that, since there is no threat avoidance approach, the UAVs will remain connected all the time. For analyzing the results, we use the stealth level and the algebraic connectivity as evaluation metrics.
+
+With regard to the performance of the stealth policy in the unstructured flight approach, as occurred in the trail formation, the stealth level of the network significantly increases when the stealth approach is active ($\psi=1$), thus highlighting the importance of this approach for missions performed on hostile environments. Besides,  when the connectivity maintenance control law is active, the stealth level rarely falls below those for the simulations performed with this control law inactive. Figure \ref{fig:unstructuredStealthConnectivity} presents the results obtained for the stealth level.
+
+\begin{figure}[hbt!]
+      \centering            
+      \subfloat[Network with 5 UAVs. ]{\includegraphics[width=0.49\textwidth]{Figures/stealth_5_connectivity.eps}} 
+      \subfloat[Network with 10 UAVs. ]{\includegraphics[width=0.49\textwidth]{Figures/stealth_10_connectivity.eps}}   \\ \centering
+      \subfloat[Network with 30 UAVs.]{{\includegraphics[width=0.49\textwidth]{Figures/stealth_30_connectivity.eps}}  }    
+      \caption{Stealth level for stealth policy and connectivity maintenance evaluation.}
+      \label{fig:unstructuredStealthConnectivity}
+\end{figure}
+
+Considering simulations performed with 5 UAVs, the stealth level of the network increases in  $30.45\%$, $24.13\%$ and $11.32\%$ for scenarios with low, medium and high level of hostility, respectively, when $\psi=1$ and $\sigma=75$, in comparison to simulations performed with the gains $\psi=0$ and $\sigma=0$. For 10 UAVs, the stealth level of the network increases in $62.37\%$, $27\%$ and $23.56\%$ and for 30 UAVs increases in $62.08\%$, $43.35\%$ and $29.74\%$. Notice that, as occurred in the trail formation, as long as the size of the network increases, the discrepancy between the stealth level of the network on simulations performed with and without the stealth policy also increases, thus highlighting the importance of collaborative work between the UAVs.
+
+Regarding the algebraic connectivity, when the stealth approach is inactive, the value of $\lambda$ is static for all simulations performed with the same network size, regardless the hostility level. This occurs because the UAVs are flying using the same path given the same the initial topology of the network. Moreover, for this kind of simulations, the initial topology of the network significantly impacts the value of $\lambda$. On the other hand, when the stealth approach is active, the UAVs, which are exposed to threats, turn off the communication radar and tries to estimate the path of its neighbours. This procedure, however, not ensures that the UAV, which is exposed to a threat will reconnect to the network. Therefore, the network can become disconnected, making the value of $\lambda$ decreases, especially for scenarios with high level of hostility.
+
+The importance of the connectivity maintenance control law becomes evident when the stealth policy is active. The value of $\lambda$ significantly increases when $\psi=1$ and $\sigma=75$ in comparison with simulations performed when $\psi=1$ and $\sigma=0$. This occurs due to the fact that the network rarely disconnect, despite the difference between the paths of the UAVs. On average, the value of $\lambda$ increases in $67.14\%$, $117.63\%$ and $53.97\%$ for simulations performed with 5, 10 and 30 UAVs, respectively, considering all the hostility levels of the scenario. Figure \ref{fig:unstructuredLambdaRadarOnConnectivity} shows the values obtained for the algebraic connectivity. 
+
+\begin{figure}[hbt!]
+      \centering            
+      \subfloat[Network with 5 UAVs. ]{\includegraphics[width=0.49\textwidth]{Figures/lambda_5_connectivity.eps}} 
+      \subfloat[Network with 10 UAVs. ]{\includegraphics[width=0.49\textwidth]{Figures/lambda_10_connectivity.eps}}   \\ \centering
+      \subfloat[Network with 30 UAVs.]{{\includegraphics[width=0.49\textwidth]{Figures/lambda_30_connectivity.eps}}  }    
+      \caption{Algebraic connectivity for stealth policy and connectivity maintenance evaluation.}
+      \label{fig:unstructuredLambdaRadarOnConnectivity}
+\end{figure}
+
+\subsection{Combined control law evaluation}
+
+Once the importance of the stealth and the connectivity maintenance control law was shown, we assume that, from now on, these control laws are always active, i.e., the gains are $\psi=1$ and $\sigma=75$. Thus, this analysis consists in evaluating the impact of the coverage area and robustness to failures improvement control laws to our model. We consider 4 possible combinations of these control laws, as follows:
+
+\begin{itemize}
+    \item Robustness and coverage area improvement control laws inactive ($\rho=0$ and $\phi=0$). 
+    \item Only robustness improvement control law active ($\rho=1$ and $\phi=0$). This combination of control laws can be used, for instance, in missions performed in extremely hostile environments with a high chance of the UAVs being destroyed, thus fragmenting the network.
+    \item Only coverage area improvement control law active ($\rho=0$ and $\phi=1$). This combination of control laws can be used, for instance, to perform missions of surveillance in environments that are not extremely hostile.
+    \item Robustness and coverage area improvement control laws active ($\rho=1$ and $\phi=1$). This combination of control laws can be used, for instance, to perform surveillance missions in hostile environments.
+\end{itemize}
+
+Regarding stealthiness, the results demonstrate that the proposed stealth approach performs well for all the combination of the control laws when the UAVs are flying in the unstructured approach. The stealth level of the network is higher when this approach is active, for all combinations of adaptive gains, in comparison with simulations performed without the stealth policy. 
+The choice of which combination of control law should be used impacts the stealthiness of the network. For instance, when the control law responsible for coverage area improvement is active, the UAVs tend to be detected for a large amount of threats, since the UAVs occupy a larger area. However, rarely more than a UAV is detected by the same threats. On the other hand, when the robustness to failures improvement control law is active, the UAVs tend to be closer to each other. Thus, the number of threats that detects the UAVs reduces. In this case, when an UAV is detected by a threat, its direct neighbours are commonly detected too, due to the movement constraint based on angle variation. Figure \ref{fig:unstructuredStealthLevelRadarOn} shows the stealth level of the networks with $5$, $10$ and $30$ UAVs.
+
+\begin{figure}[hbt!]
+      \centering            
+      \subfloat[Network with 5 UAVs. ]{\includegraphics[width=0.49\textwidth]{Figures/stealth_5.eps}} 
+      \subfloat[Network with 10 UAVs. ]{\includegraphics[width=0.49\textwidth]{Figures/stealth_10.eps}}   \\ \centering
+      \subfloat[Network with 30 UAVs.]{{\includegraphics[width=0.49\textwidth]{Figures/stealth_30.eps}}  }    
+      \caption{Stealth level for combined control law evaluation.}
+      \label{fig:unstructuredStealthLevelRadarOn}
+\end{figure}
+
+The stealth level of the network increases along with the network size regardless of the adaptive gains combination. This occurs because the fraction of UAVs that are detected by radars reduces by using a larger amount of UAVs working on a collaborative stealth approach. Analyzing the stealthiness of the networks, it is possible to note that the stealth level significantly improves when the network size increases. The average value of stealth level is $0.77$ for simulations performed with 5 UAVs, $0.90$ for 10 UAVs and $0.95$ using 30 UAVs.
+
+For using the control law to improve the coverage area of the network, i.e., when $\phi=1$ and $\rho=0$, the stealth level of the network is higher than in the case in which $\phi=0$ and $\rho=0$. Moreover, the stealth level for simulations performed with the gains $\rho=1$ and $\phi=1$ rarely falls below to the simulations performed with $\rho=0$ and $\phi=1$. This occurs because the robustness to failures of the network increases along with the coverage area. Therefore, the network hardly separates when an UAV shuts down its communication radar and, because of the coverage area improvement law, rarely more than a single UAV is exposed to the same threat. 
+
+The discrepancy between the stealth level by using the combination of control laws was normally low, highlighting that the stealth approach is applicable for flights with distinct purposes, such as to improve robustness to failures on extremely hostile environment or to perform surveillance missions. The highest values of stealth level were normally obtained when $\rho=1$ and $\phi=1$ and the lowest values when $\rho=1$ and $\phi=0$. The discrepancy between these extremes, regarding to the stealth level of the networks is $4.26\%$, $3.23\%$ and $2.82\%$, for simulations performed with 5, 10 and 30 UAVs, respectively, considering the average of all hostility levels of the scenarios.
+
+As for the coverage area improvement control law, the greatest value of coverage area rate occurs when $\phi=1$ and $\rho=0$. For instance, considering simulations performed with 5 UAVs, the coverage area rate increases, on average, $25.76\%$, by using the adaptive gains $\phi=1$ and $\rho=0$ in comparison with simulations performed with the gains $\phi=0$ and $\rho=0$. For simulations performed with 10 UAVs, the coverage area rate increases in $48.47\%$ and for 30 UAVs $50.47\%$. On the other hand, the lower values of coverage area rate occurs when $\phi=0$ and $\rho=1$. For that, the coverage area rate decreases, on average, $1.18\%$, $5.11\%$, $5.10\%$, for networks with size 5, 10 and 30 respectively, in comparison with simulations performed with the gains $\phi=0$ and $\rho=0$. The reason for this relies on the fact that the UAVs that are vulnerable create new communication links with other UAVs, then reducing the coverage area rate of the network. Figure \ref{fig:unstructuredCovAreaRateRadarOn} shows the results for the coverage area rate. 
+
+\begin{figure}[hbt!]
+      \centering            
+      \subfloat[Network with 5 UAVs. ]{\includegraphics[width=0.49\textwidth]{Figures/cov_5.eps}} 
+      \subfloat[Network with 10 UAVs. ]{\includegraphics[width=0.49\textwidth]{Figures/cov_10.eps}}   \\ \centering
+      \subfloat[Network with 30 UAVs.]{{\includegraphics[width=0.49\textwidth]{Figures/cov_30.eps}}  }
+      \caption{Coverage area rate for combined control law evaluation.}
+      \label{fig:unstructuredCovAreaRateRadarOn}
+\end{figure}
+
+The simulations performed with the adaptive gains $\phi=1$ and $\rho=1$ demonstrate that the control laws for coverage area and robustness to failures improvement performs well, when used simultaneously. The coverage area rate is much closer to the simulations performed with $\phi=1$ and $\rho=0$ in comparison with those performed considering the gains $\phi=0$ and $\rho=0$. Therefore, although the control law for robustness to failures improvement reduces the coverage area rate of the network, by combining this control law with the one responsible for coverage area improvement, it is also possible to considerably improve the coverage area rate of the network.
+
+In terms of robustness level, by using the adaptive gain $\rho=1$, it is expected that the robustness of the network improves. However, as several UAVs end up being exposed to the same threat because of the proximity between them, this not occurs all the time.  Figure \ref{fig:unstructuredRobustnessRadarOn} shows the results obtained for robustness level. 
+
+\begin{figure}[hbt!]
+      \centering            
+      \subfloat[Network with 5 UAVs. ]{\includegraphics[width=0.49\textwidth]{Figures/rob_5.eps}} 
+      \subfloat[Network with 10 UAVs. ]{\includegraphics[width=0.49\textwidth]{Figures/rob_10.eps}}   \\ \centering
+      \subfloat[Network with 30 UAVs.]{{\includegraphics[width=0.49\textwidth]{Figures/rob_30.eps}}  }    
+      \caption{Robustness level for combined control law evaluation.}
+      \label{fig:unstructuredRobustnessRadarOn}
+\end{figure}
+
+When $\phi=0$ the occurrence of the greatest values of values of robustness is in scenarios with low level of hostility. As long as the the hostility of the scenario increases the robustness level of the network decreases. This occurs because of when the number of the threats increases, the number of UAVs that are detected by these also increases. In addition, considering that the coverage area rate of the network decreases, once a UAV is detected by a threat, several UAVs end up being exposed to the same threat due to the proximity between them. 
+
+For simulations performed using networks composed of 5 and 10 UAVs, the robustness level, when $\phi=0$ and $\rho=1$, is always higher than in the case $\phi=1$ and $\rho=1$. It means that the probability of the network get disconnected when some UAV turned off its radar is low. This relation persists for networks with 30 UAVs performing mission on the scenario with low level of hostility. On the other hand, for simulations performed with 30 UAVs on scenarios with medium and high level of hostility, the performance of the UAVs, regarding the robustness level of the network, when combine the control laws for coverage area and robustness to failures improvement, is significantly better. For instance, analyzing the performance of the network with size 30 it is possible to note that the robustness level, when $\phi=0$ and $\rho=1$, is $17.80\%$ higher than using the adaptive gains $\phi=1$ and $\rho=1$, for low hostility level of scenarios. However, by using the gains $\phi=1$ and $\rho=1$, the robustness level is $21.27\%$ and $26.96\%$ higher for scenarios with medium and high level of hostility, respectively.
+
+Concerning algebraic connectivity, as UAVs get closer the value of $\lambda$ increases. Thus, considering that the control law responsible for robustness to failures reduces the coverage area rate, it increases the value of $\lambda$. On the other hand, by using the adaptive gain $\phi=1$, the value of $\lambda$ reduces, due to the fact that the UAVs are more dispersed in the scenario. Figure \ref{fig:unstructuredLambdaRadarOn} shows the values obtained for the algebraic connectivity of the network.
+
+\begin{figure}[hbt!]
+      \centering            
+      \subfloat[Network with 5 UAVs. ]{\includegraphics[width=0.49\textwidth]{Figures/lambda_5.eps}} 
+      \subfloat[Network with 10 UAVs. ]{\includegraphics[width=0.49\textwidth]{Figures/lambda_10.eps}}   \\ \centering
+      \subfloat[Network with 30 UAVs.]{{\includegraphics[width=0.49\textwidth]{Figures/lambda_30.eps}}  }    
+      \caption{Algebraic connectivity for combined control law evaluation.}
+      \label{fig:unstructuredLambdaRadarOn}
+\end{figure}
+
+
+As aforementioned, the initial topology of the network significantly impacts the value of the algebraic connectivity when the UAVs are flying using the unstructured approach. Thus, considering that our setup uses a single initial topology for each size of network, the value of $\lambda$ can change significantly for different initial topologies. Considering the simulations that normally provides the higher values of the algebraic connectivity, which are those performed with the gains $\rho=1$ and $\phi=0$, the value of $\lambda$ increases, on average, $5.90\%$ $28.20\%$ and $10.63\%$, in comparison with simulations performed using the gains $\rho=0$ and $\phi=0$, for networks with 5, 10 and 30 UAVs, respectively. On the other hand, by using the gains $\rho=0$ and $\phi=1$, the value of $\lambda$ decreases $194.19\%$, $307.40\%$ and $69.01\%$, in comparison with simulations performed using the gains $\rho=0$ and $\phi=0$, for networks with 5, 10 and 30 UAVs, respectively. For the case in which the adaptive gains are $\rho=1$ and $\phi=1$, the value of $\lambda$ achieved an intermediate value, as expected. 

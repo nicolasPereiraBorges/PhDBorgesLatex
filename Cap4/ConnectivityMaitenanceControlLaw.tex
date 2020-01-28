@@ -1,0 +1,58 @@
+
+In order to guarantee the connectivity of a network, \cite{sabattiniijrr2013} propose an approach to solve the connectivity maintenance problem in a decentralized manner, using the algebraic connectivity property. For this purpose, consider a weighted graph, where the edge weights $w_{ij}$ are defined as follows:
+\begin{equation}
+w_{ij}=\left\{
+\begin{array}{ll}
+e^{-\left(\left\|p_i-p_j\right\|^2\right)/\left(2\sigma^2\right)}&\mbox{if }\left\|p_i-p_j\right\|\leq R\\
+0&{otherwise.}	
+\end{array}\right. 
+\label{eq:edgeweightIJRR}
+\end{equation}
+where $e^{-\left(R^2\right)/\left(2\sigma^2\right)} = \Delta$, and $\Delta$ is a small predefined threshold. Notice that the definition of the edge weights introduces a discontinuity in the control action. However this can be avoided introducing a smooth bump function, as in \cite{do2008}. 
+
+Define $\epsilon>0$ to be the desired lower-bound for the value of $\lambda$. The control strategy is then designed to ensure that the value $\lambda$ never goes below $\epsilon$. As in~\cite{sabattiniijrr2013}, the following energy function can then be utilized for generating the decentralized connectivity maintenance control strategy:
+\begin{equation}
+V\left(\lambda\right)=\left\{
+\begin{array}{ll}
+\coth \left(\lambda - \epsilon\right)\,\, & \mbox{if } \lambda>\epsilon\\
+0 & \mbox{otherwise.}
+\end{array}\right.
+\label{eq:totaltensionCDC}
+\end{equation}
+The control design drives the UAVs to perform a gradient descent of $V\left(\cdot\right)$ in order to ensure connectivity maintenance. Considering the dynamics of the system introduced in~\eqref{eq:singleintegrator}, the control law is defined as: % follows:
+\begin{equation}
+{u}_i=u_i^c = -\tfrac{\partial V\left(\lambda\right)}{\partial p_i}=-\tfrac{\partial V\left(\lambda\right)}{\partial \lambda}\tfrac{\partial \lambda}{\partial p_i}.
+\label{eq:Kfunction}
+\end{equation}
+
+\subsubsection{Collision avoidance}
+
+The connectivity maintenance framework can be enhanced to consider additional objectives. In particular, as shown in~\cite{robuffogiordano2013}, the concept of generalized connectivity can be utilized for simultaneously guaranteeing connectivity maintenance and collision avoidance with environmental obstacles and among the UAVs. This is achieved considering the following generalized edge weights:
+
+\begin{equation}
+\omega_{ij} = w_{ij}\gamma_{ij},
+\label{eq:generalizedweights}
+\end{equation}
+$\forall i,j = 1, \ldots, N$. In particular, the edge weights $w_{ij}$ represent the standard connectivity property. The multiplicative coefficients $\gamma_{ij}$ represent the collision avoidance edge weights, which have the following properties, $\forall i,j=1, \ldots, N$:
+
+\begin{enumerate}
+        \item $\gamma_{ij}=\gamma_{ij}\left(\left\|p_i-p_j\right\|\right)\geq0$. \label{property:cweights1}
+		\item $\gamma_{ij}=0\,\,\,\mbox{if }\left\|p_i-p_j\right\| = 0$, and $\gamma_{ij}=1\,\,\,\mbox{if }\left\|p_i-p_j\right\| \geq d_{s}$. \label{property:cweights2}
+		\item $\gamma_{ij}\left(d\right)$ is non-decreasing w.r.t. its argument $d$.\label{property:cweights4}
+\end{enumerate}
+
+where $d_s>0$ represents the safety distance. 
+
+\subsubsection{Displacement model}
+
+
+
+From the generalized edge weights $\omega_{ij}$ in~\eqref{eq:generalizedweights}, 
+it is possible to compute the generalized Laplacian matrix $\mathcal{L}^G$, whose second smallest eigenvalue $\varphi$ represents the generalized connectivity of the graph. As shown in~\cite{robuffogiordano2013}, guaranteeing positiveness of the generalized connectivity $\varphi$ simultaneously guarantees maintenance of the algebraic connectivity 
+and collision avoidance. This can then be achieved using the control law~\eqref{eq:Kfunction} replacing $\lambda$ with $\varphi$, namely:
+\begin{equation}
+{u}_i=u_i^c = -\tfrac{\partial V\left(\varphi\right)}{\partial p_i}=-\tfrac{\partial V\left(\varphi\right)}{\partial \varphi}\tfrac{\partial \varphi}{\partial p_i}.
+\label{eq:genconnmaint}
+\end{equation}
+
+Since $\varphi$ and its gradient are global quantities, the proposed control law is centralized. A decentralized implementation can be achieved replacing $\varphi$ and its gradient with their estimates, computed by each UAV in a decentralized manner applying the procedure proposed in~\cite{sabattiniijrr2013}.

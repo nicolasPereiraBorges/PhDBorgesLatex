@@ -1,0 +1,203 @@
+
+\documentclass[quali, eng]{ita}    % ITA.cls based on standard book.cls 
+%\usepackage[brazilian]{babel}
+\usepackage{ae}
+\usepackage{graphicx}
+\usepackage{epsfig}
+\usepackage{amsmath}
+\usepackage{amssymb} 
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{color,xcolor,ucs}
+\usepackage{hyperref}
+\usepackage{pgfgantt}
+\usepackage{pdflscape}
+\usepackage{multicol}
+\usepackage{enumitem}
+\usepackage{todonotes}
+\usepackage{subcaption}
+\usepackage{mathtools}
+\usepackage{nicefrac}
+
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage[noend]{algpseudocode}
+
+\makeatletter
+\def\BState{\State\hskip-\ALG@thistlm}
+\makeatother
+
+\newcommand{\argmin}{\arg\,\min} 
+
+\newtheorem{defn}{Definition}%[section]
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+% Espacamento padrao de todo o documento
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\onehalfspacing
+
+%singlespacing Para um espacamento simples
+%onehalfspacing Para um espacamento de 1,5
+%doublespacing Para um espacamento duplo
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\course{Electronic and Computer Engineering} 
+\area{Informatics} 
+
+% Autor do trabalho: Nome Sobrenome
+\authorgender{masc}                    
+\author{N\'{i}colas Pereira}{Borges}
+\itaauthoraddress{Av. Cidade Jardim, 679}{12.233-066}{S\~{a}o Jos\'{e} dos Campos--SP}
+
+% Titulo da Tese/Dissertacao
+
+%\title{Improving stealth in collaborative UAV networks using a combined control law approach}
+\title{Cooperative path planning approach to increase stealthiness in multidepot visiting applications}
+\title{Dynamic Route Optimization for Drones in Denied Environment}
+
+
+% Orientador
+\advisorgender{masc}                    % masc ou fem
+\advisor{Prof.~Dr.}{Carlos Henrique Costa Ribeiro}{ITA}
+
+\coadvisorgender{fem}									% masc ou fem
+\coadvisor{Dr$^\textnormal{a}$.}{Cinara Guellner Ghedini}{ITA}
+
+% Pro-reitor da Pos-graduacao
+\bossgender{masc}											
+\boss{Prof.~Dr.}{Pedro Teixeira Lacava}
+
+% Palavras-Chaves informadas pela Biblioteca -> utilizada na CIP
+\kwcip{Stealth, unmanned aerial vehicles, multi-robot systems}
+
+
+% membros da banca examinadora
+\examiner{Prof. Dr.}{}{Chairperson}{ITA}
+\examiner{Prof$^\textnormal{a}$. Dr$^\textnormal{a}$.}{}{Internal Member}{ITA}
+\examiner{Prof$^\textnormal{a}$. Dr$^\textnormal{a}$.}{}{External Member}{}
+%\examiner{Prof. Dr.}{Marcos Gon\c{c}alves Quiles}{}{UNIFESP}
+
+% Data da defesa (mes em maiusculo, se trabalho em ingles, e minusculo se trabalho em portugues) 
+\date{09}{September}{2019}
+
+% Glossario
+\makeglossary
+\frontmatter
+
+\begin{document}
+% Folha de Rosto e Capa para o caso do TG
+\maketitle
+
+%\begin{itadedication}
+
+%\end{itadedication}
+
+% Agradecimentos
+%\begin{itathanks}
+%\input{Cap0/agradecimentos}
+%\end{itathanks}
+
+% Epigrafe
+\thispagestyle{empty}
+\ifhyperref\pdfbookmark[0]{\nameepigraphe}{epigrafe}\fi
+\begin{flushright}
+\begin{spacing}{1}
+%\mbox{}\vfill
+%{\sffamily\itshape
+%``The chance you got comes never twice. \\ Do your best, and do it right. \\Time will come but don't you hide. \\
+%You are on your way.''\\}
+%--- \textsc{Roland Grapow}
+\end{spacing}
+\end{flushright}
+
+% Resumo
+\begin{abstract}
+\noindent
+\input{Cap0/resumo}
+\end{abstract}
+
+% Abstract
+\begin{englishabstract}
+\noindent
+\input{Cap0/abstract}
+\end{englishabstract}
+
+% Lista de figuras
+\listoffigures %opcional
+
+% Lista de tabelas
+%\listoftables %opcional
+
+% Lista de abreviaturas
+\listofabbreviations
+\input{Cap0/listaabreviaturas} %opcional
+
+% Lista de simbolos
+%\listofsymbols
+%\input{Cap0/listasimbolos} %opcional
+
+
+% Sumario
+\tableofcontents
+
+\mainmatter
+% Os capitulos comecam aqui
+
+\chapter{Introduction} \label{chap:1}
+\input{Cap1/cap1}
+
+\chapter{Background}\label{chap:2}
+\input{Cap2/cap2}
+
+\chapter{Related Work}\label{chap:3}
+%\input{Cap3/cap3}
+
+\chapter{Simulation Model}\label{chap:4}
+%\input{Cap4/cap4}
+
+\chapter{Experiments}\label{chap:5}
+%\input{Cap5/cap5}
+
+\chapter{Conclusions and Future Work}\label{chap:6}
+%\input{Cap6/cap6}
+
+
+
+% REFERENCIAS BIBLIOGRAFICAS
+\renewcommand\bibname{\itareferencesnamebabel} %renomear titulo do capitulo referencias
+\bibliography{Referencias/referencias}
+
+% Apendices
+\appendix
+\chapter{Appendix} %opcional
+\input{ApeA/apendiceA}
+
+% Anexos
+%\annex
+%\chapter{Exemplo de um Primeiro Anexo} %opcional
+%\input{AneA/anexoA}
+
+% Glossario
+%\itaglossary
+%\printglossary
+
+% Folha de Registro do Documento
+% Valores dos campos do formulario
+\FRDitadata{24/01/2018}
+\FRDitadocnro{DCTA/ITA/DM-018/2015} %(o numero de registro voce solicita a biblioteca)
+\FRDitaorgaointerno{Instituto T\'{e}cnologico de Aeron\'{a}utica -- ITA}
+
+\FRDitapalavrasautor{Stealth, unmanned aerial vehicles, multi-robot systems}
+\FRDitapalavrasresult{Stealth, unmanned aerial vehicles, multi-robot systems}
+%Exemplo no caso de graduacao (TG):
+%\FRDitapalavraapresentacao{Trabalho de Graduacao, ITA, S�o Jos� dos Campos, 2015. \NumPenultimaPagina\ paginas.}
+%Exemplo no caso de pos-graduacao (msc, dsc):
+\FRDitapalavraapresentacao{ITA, S\~{a}o Jos\'{e} dos Campos. Curso de Mestrado. Programa de P\'{o}s-Gradua\c{c}\~{a}o em Engenharia Eletr\^{o}nica e Computa\c{c}\~{a}o. \'{A}rea de Inform\'{a}tica. Orientador: Prof.~Dr. Carlos Henrique Costa Ribeiro. Coorientadora: Dr$^\textnormal{a}$. Cinara Guellner Ghedini. Defesa em 18/12/2017. Publicada em 24/01/2018.}
+
+\FRDitaresumo{\input{Cap0/resumo}}
+%  Primeiro Parametro: Nacional ou Internacional -- N/I
+%  Segundo parametro: Ostensivo, Reservado, Confidencial ou Secreto -- O/R/C/S
+\FRDitaOpcoes{N}{O}
+% Cria o formulario
+\itaFRD
+
+\end{document}

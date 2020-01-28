@@ -1,0 +1,132 @@
+
+According to \cite{sangwan_2015} coverage can be defined as how well or to how much extent each point of a deployed network is under the vigilance of a sensor node. The coverage mechanism in the context of this work aims to improve the capacity of a UAVs of monitoring the environment, reducing the redundant areas and avoiding "holes" in the network. 
+
+Ghedini \cite{ghedini_2017} describes a local model that uses a control law that improves the coverage area of multi-robot systems. In addition, it also shows how this control law operates in combination with control laws for connectivity maintenance and robustness to failures. The procedure is based on a Voronoi tesselattion, which is a widespread technique that supports several context of application approaches \cite{breitenmoser2010}. This control law is discussed in what follows.
+
+\subsubsection{Voronoi coverage}
+
+A Voronoi tessellation is a subdivision of a plane into cells based on the proximity of a set of points (named sites).
+Let $P=\left[p_1,p_2, \ldots, p_n\right]$ be a set of points in the plane. Define $V(i)$, the Voronoi cell for $p_i$, to
+be the set of points $q$ in the plane that are closer to $p_i$ than to any other site. Thus, the Voronoi cell for  $p_i$ is defined by 
+
+\begin{equation} \label{eq:VoronoiDefinition}
+V(i)=\{q \mid \|p_iq\| < \|p_jq\|, \forall j\neq i \}, 
+\end{equation}
+where  $\|pq\|$ denotes the Euclidean distance between points $p$ and $q$ \cite{mount_2002}.
+
+According to Schawager \textit{et al.} \cite{schwager_2007}, if each point is positioned at the centroid of its Voronoi cell,  a cost function representing the sensing cost of a network is locally minimized.
+
+Due to the requirements demanded by the defined scenario features, such as using local information, the strategy for modeling the Voronoi coverage is based on a local mechanism presented in \cite{breitenmoser2010}, described as follows. Let $V(i)$ be the Voronoi cell corresponding to a UAV located at $p_i$. A team of $n$ UAVs at positions $P= [p_i]_{i=1}^n\in\mathbb{R}^{Nn}$ navigate in a bounded polygonal environment $\Omega\Rightarrow\mathbb{R}^{N}$, where $\Omega$ is a closed set with the boundary $\partial\Omega$. 
+Given  a positive density function $ \phi:\Omega\rightarrow\mathbb{R} >0$, the centroid of $V(i)$ is defined as
+
+\begin{equation} \label{eq:centroidalVoronoi}
+\mathit{C}_{V_i}=\frac{1}{{M}_{V_i}}\int_{V_i} \mathit{x} \, \phi(x)\mathrm{d}\mathit{x},
+\end{equation}
+where ${M}_{V_i}$ is the cell mass  \cite{breitenmoser2010}: 
+\begin{equation} \label{eq:mass}
+{M}_{V_i}=\int_{V_i} \phi(x)\mathrm{d}\mathit{x}.
+\end{equation}
+
+An optimal distribution of generating points implies that each of them is at the center of mass of its cell, i.e., $p_i = C_{V_i}, \forall i \in \{1,\dots,n\}$. This centroidal Voronoi tessellation (CVT) is a minimum-energy configuration in the sense that it minimizes the distance between points: 
+
+\begin{equation} \label{eq:costVoronoi}
+\mathscr{H}(P)=\sum_{i=1}^{n}\mathscr{H}(p_i) = \, \sum_{i=1}^{n}\int_{V_i} f(D(\mathit{p_i},\mathit{x})) ,\ \phi(x)\mathrm{d}\mathit{x},
+\end{equation}
+
+where $D(.)$ is the distance between a point $p_i$ and a location $x$ in $\Omega$, and $\phi(.)$  is the density function that describes the importance of different areas in $\Omega$ \cite{breitenmoser2010}. Considering the euclidean distance $D(p_i,x)=\|x-p_i\|$ as the distance function in~\eqref{eq:costVoronoi}:
+\begin{equation} \label{eq:distancepartial}
+\frac{\partial\mathscr{H}(p_i)}{\partial(p_i)}=-M_{V_i}(\mathit{C}_{V_i}-p_i)=0,
+\end{equation}
+the local minima is reached with a CVT since $\mathit{C}_{V_i}=p_i$ implies $\frac{\partial\mathscr{H}}{\partial(p_i)}=0, \forall i \in \{1 \dots n\}$.
+
+The Voronoi coverage presented in \cite{breitenmoser2010} is based on the Lloyds algorithm \cite{du_2006}, which is a well-stabilished method for generating a centroidal Voronoi tessellation. It encompasses:    
+\begin{enumerate}
+	\item Create the Voronoi diagram for generating points $P$.
+	\item Compute the centroid $[\mathit{C}_{V_i}]_{i=1}^n$ of each Voronoi cell.
+	\item Set the new target position of each UAV as the centroid of its cell\footnote{Notice that the exposure to threats needs to be reduced in our model, thus, case the  centroid of its cell is inside a threat region, the UAV does not move in this direction.}.	 
+\end{enumerate}
+This process iterates until the computed centroids and the generating points are at the same positions. From the proportional control law  
+~\eqref{eq:distancepartial} the simple first-order dynamics can be derived:
+\begin{equation} \label{eq:derivatepartial}
+u_i = u_i^v=\dot{p}_i=-\frac{k}{M_{V_i}}\frac{\partial\mathscr{H}(p_i)}{\partial(p_i)}=k(\mathit{C}_{V_i}-p_i).
+\end{equation}
+
+The procedure for locally computing the Voronoi cells assumes that each UAV knows its own position $p_i$ and its neighbor positions $p_{\mathcal{N}_i}=\{p_j,\forall j\in\mathcal{G}: i,j \in \mathcal{E}\left(\mathcal{G}\right)\}$. Thus, each UAV $i$ computes its local Voronoi ($V(i)$ Eq. \eqref{eq:VoronoiDefinition}). Having its voronoi cell $\mathit{C}_{V_i}$, the mass of the centroid is calculated (\eqref{eq:centroidalVoronoi}). Finally, to improve the coverage area, the UAV flight toward the mass of its cell centroid $\mathit{C}_{V_i}$.
+
+The procedure for improving the coverage area iterates until a centroidal Voronoi tessellation is achieved or as it is convenient for the applicatio. The Voronoi tessellation and the mass of the centroid are recomputed at each $t$ seconds, setting according to the application requirements. If a UAV $i$ is at the centroidal position of its Voronoi cell, the weight for $u_i^v$ is zero, i.e., the $i$  UAV does not need to improve its position regarding coverage. 
+
+This approach imposes some constraints to the scenario adopted here: the  procedure for creating a Voronoi tessellation generates some unbounded cells, being that for computing the mass of the centroid for a cell it needs to be bounded. Therefore, it is necessary to define a procedure to delimitate the unbounded cells. This issue is addressed as follows.
+
+\subsubsection{Unbounded Voronoi tessellations}
+
+Considering that the coverage approach is based on the generation of each cell centroid, the main issue of using the Voronoi tessellation as a means of improving the network coverage area is the treatment of unbounded cells.
+
+A possible approach is addressed in \cite{sang_2015}. It focuses on presenting geographic data through Voronoi diagrams without having to specify a bounding box. However, the same procedure can be applied for bounding a Voronoi diagram with the advantage of using the UAV communication range for reducing the size or bounding cells, as the technique relies on defining a maximum size for a cell.
+
+Figure \ref{fig:voronoi} illustrates a Voronoi cell for a generating point and a circle that defines the cell limits. 
+\begin{figure}[ht] \centering
+	\includegraphics[width= 0.30\linewidth]{Figures/voronoi.png}
+	\caption{Mapping edges in a Voronoi Cell \cite{sang_2015}.}
+	\label{fig:voronoi}	
+\end{figure}
+ 
+ All possible state classifications and actions for an edge can be visualized in this example. Each edge may:
+ 
+ \begin{itemize}
+	\item lay completely inside the bounding circle (edge A): it must not change;
+	\item lay completely outside the bounding circle (edge C): it must be replaced by its corresponding circle;
+	\item have one intersection with the bounding circle (edges B and E): the part laying inside the circle remains unchanged, the rest is replaced by its corresponding circle part;
+	\item have two intersections with the bounding circle (edge D): it part laying inside the circle remains unchanged, the other two parts are replaced by their corresponding circle part.
+\end{itemize}
+
+The first step is to verify if a cell lies inside the bounding circle by computing the distance of each of its vertices to the circle center (in this application, the UAV position) and comparing it with the circle radius:
+\begin{equation} \label{eq:distance}
+distance_{(P,Center)} = \sqrt{(P_x-Center_x)^2 + (P_y-Center_y)^2},
+\end{equation}
+where $P_x$ and $P_y$ are the coordinates of each Voronoi cell point and $Center$ is the center point of the circle.
+
+For those vertices that are completely outside the bounding circle (edge $C$ - Figure \ref{fig:voronoi}), its $x$ and $y$ coordinates are mapped to the circle point, i.e., the distance from the new point to the $Center$ is equal to the predefined radius:
+\begin{equation} \label{eq:newPx}
+NewP_x = Center_x + (P_x-Center_x) * Radius/distance(P,Center),
+\end{equation}
+\begin{equation} \label{eq:newPy}
+NewP_y = Center_y + (P_y-Center_y) * Radius/distance(P,Center).
+\end{equation}
+
+For cutting the edges intersecting the circle (edges $B$,$D$ and $E$ - Figure \ref{fig:voronoi}), a straight line corresponding to an edge is computed: 
+\begin{equation}
+\begin{aligned}\label{eq:lineEdge}
+y &= a*x+b \;when\; x_1 \neq\ x_2, a=(y_2-y_1)/(x_2-x 1 ) \;and\; b=(y_1 *x_2-y_2*x_1)/(x_2-x_1) \\
+x &= a*y+b \;when\; x_1 = x_2, \; a=0 \;and\;  b=x_1, 
+\end{aligned}
+\end{equation}
+where $(x_1,y_1)$ and $(x_2,y_2)$ are the coordinates of the two vertices. Then, the definition of the bounding circle is given by:
+\begin{equation} \label{eq:boundingCircle}
+y = Center_y \pm \sqrt{Radius^2 - {(x-Center_x)^2}} \; if \;  Radius^2 \geq  {(x-Center_x)^2}.
+\end{equation}
+
+The equations \eqref{eq:lineEdge} and \eqref{eq:boundingCircle} are then combined to find the intersections:  
+\begin{equation} \label{eq:combiningEq}
+Center_y \pm \sqrt{Radius^2 - {(x-Center_x)^2}} \; = \;  a*x+b.
+\end{equation}
+Solving equation \eqref{eq:combiningEq} in order to achieve a quadratic equation of the form  
+$A*x^2+B*x+C=0$:
+\begin{align}
+A&=-1-a^2 \nonumber \\
+B&=2*Center_x-2*a*(b-Center_y) \nonumber \\
+C&=Radius^2-Center{_x}{^2}-(b-Center_y)^2, \nonumber\\
+\end{align}
+the values of $x$ are given by the general quadratic equation 
+$x=-B\pm \sqrt{B^2-4*A*C}$, and the values of $y$ by equation \eqref{eq:lineEdge}. Thus, $x$ and $y$ determine the new cell boundaries. The computational complexity is $\mathcal{O}(n)$, where $n$ is the number of edges in the Voronoi diagram \cite{sang_2015}.  
+
+\subsubsection{Displacement model}
+
+The objective of this control law is to drive an UAV  to a position that increases the coverage area of the network. Thus, given an UAV $u$, located at position $p_i$, and its corresponding voronoi cell centroid $x_y^i$, the control law that drives the UAV to improve the coverage area can be defined as:
+
+\begin{equation}
+u_i^c = \xi_i\tfrac{x_\gamma^i - p_i}{\left\| x_\gamma^i - p_i \right\|}\delta\left(t\right),
+\label{eq:controllawCoverage}
+\end{equation}
+where $\delta\left(t\right)\in\mathbb{R}$ is the linear velocity of the UAVs.
+
+By default, $\xi_i=1$. However, considering that the exposure to threats needs to be reduced in our model, in case the Voronoi cell centroid of the UAV $u$ is inside a threat region, it does not move in this direction. In this case, we set $\xi_i=0$.

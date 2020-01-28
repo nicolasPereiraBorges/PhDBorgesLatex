@@ -1,0 +1,79 @@
+Considering that failures of nodes playing a central role in the network communication are likely to affect most its connectivity --- and thus, the cooperation between UAVs, Ghedini \cite{ghedini_2016} addresses a way to improve the robustness of a local network to failures. This approach is defined by three execution steps, described as follows:
+
+\begin{itemize}
+    \item Evaluation of robustness of the network.
+    \item Local evaluation of vulnerability of the nodes.
+    \item Driving vulnerable UAVs to improve the robustness of the network.
+\end{itemize}
+
+\subsubsection{Robustness level}
+
+In the case of connectivity maintenance, Ghedini \cite{ghedini_2015} consider the \emph{Betweenness Centrality} ($BC$) for ranking the network nodes \cite{wasserman_1994}. For a given node $i$ and pair of nodes $j,l$, the importance of $i$ as a mediator of the communication between $j$ and $l$ can be established as the ratio between the number of shortest paths linking nodes $j$ and $l$ that pass through node $i$  ($g_{jl}(i)$), and the total number of shortest paths connecting nodes $j$ and $l$ ($g_{jl}$). Then, the $BC$ of a node $i$ is simply the sum of this value over all pairs of nodes, not including $i$:
+\begin{equation} \label{eq:BC}
+BC(i) = \sum_{j<l}\tfrac{g_{jl}(i)}{g_{jl}}.
+\end{equation}
+Once the $BC$ has been computed for all the nodes, it is possible to order them from the \emph{most central} (i.e. the node with highest value of $BC$) to the \emph{less central} (i.e. the node with lowest value of $BC$). Hence, let $\left[v_1, \ldots, v_N\right]$ be the list of nodes ordered by descending value of $BC$. In this context, the \emph{Robustness level} can be formally defined as follows:
+ \begin{defn}[Robustness level~\cite{ghedini_2015}]\label{robustness_level}
+Consider a graph $\mathcal{G}$ with $N$ nodes, and let  $\left[v_1, \ldots, v_N\right]$ be the list of nodes ordered by descending value of $BC$. Let $\varphi <N$ be the minimum index $i \in \left[ 1, \ldots, N\right]$ such that, removing nodes $\left[v_1, \ldots, v_i\right]$ leads to disconnecting the graph, that is, the graph including only nodes $\left[v_{\varphi+1}, \ldots, v_N\right]$ is disconnected.
+Then, the \emph{robustness level} of $\mathcal{G}$ is defined as:
+\begin{equation} \label{eq:robustness}
+    \Theta(\mathcal{G}) =  \tfrac{\varphi}{N}.
+\end{equation}
+\end{defn}
+
+The robustness level defines the fraction of central nodes that need to be removed from the network to obtain a disconnected network. Small values of $\Theta(\mathcal{G})$ imply that a small fraction of node failures may fragment the network. Therefore, increasing this value means increasing the network robustness to failures. Notice that $\Theta(\mathcal{G})$ is only an estimate of how far the network is from getting disconnected w.r.t. the fraction of nodes removed. In fact, it might be the case that different orderings of nodes with the same $BC$ produce different values of $\Theta(\mathcal{G})$.
+
+From a local perspective, a heuristic for estimating the magnitude of the topological vulnerability of a node by means of information acquired from its 1-hop and 2-hops neighbors is proposed in \cite{ghedini_2015}. This heuristic is described as follows.
+
+\subsubsection{Vulnerability level}
+
+ Let $d(v,u)$ be the shortest path between nodes $v$ and $u$, i.e., the minimum number of edges that connect nodes $v$ and $u$. Subsequently, define $\Pi(v)$ as the set of nodes from which $v$ can acquire information:
+$$\Pi(v)=\{u \in V(G) : d(v,u)\leq 2\}.$$
+Moreover, let $|\Pi(v)|$ be the number of elements of $\Pi(v)$. In addition, define $\Pi_{2}(v)\subseteq \Pi(v)$ as the set of the 2-hop neighbors of $v$, that comprises only nodes whose shortest path from $v$ is exactly equal to 2 hops, namely
+$$\Pi_{2}(v)=\{u \in V(G) : d(v,u)=2\}.$$
+
+Now, define $L(v,u)$ as the \emph{number of paths} between nodes $v$ and $u$, and let $Path_{\beta}(v) \subseteq \Pi_{2}(v)$ be the set of $v$'s 2-hop neighbors that are reachable through at most $\beta$ paths, namely $$Path_{\beta}(v)=\{u \in \Pi_{2}(v): L(v,u) \leq \beta\}.$$
+Thus, $\beta$ defines the threshold for the maximal number of paths between a node $v$ and each of its $u$ neighbors that are necessary to include $u$ in $Path_{\beta}(v)$. Therefore, using a low value for $\beta$ allows to identify the most weakly connected 2-hop neighbors. Hence, the value of $|Path_{\beta}(v)|$  is an indicator of the magnitude of node fragility w.r.t. connectivity, and the vulnerability level of a node regarding failures is given by $P_{\theta}(v) \in \left(0,1\right)$:
+
+\begin{equation} \label{eq:vulnerability}
+P_{\theta}(v) =  \frac{|Path_{\beta}(v)|}{|\Pi(v)|}.
+\end{equation}
+
+where $|\Pi(v)|$ is the number of $v$'s 1-hop and 2-hops neighbors, and $|Path_{\beta}(v)|$ is the number of nodes that are exactly at 2-hops from node $v$ and relying on at most $\beta$ 2-hops paths to communicate with $v$.
+
+\subsubsection{Displacement model}
+
+Based on the vulnerability level definition, given in~\eqref{eq:vulnerability}, the purpose of the control strategy is to increase the number of links of a potentially vulnerable node $i$ towards its 2-hop neighbors that are in $Path_{\beta}(i)$, for a given value of $\beta$. Hence, define $x_\beta^i\in\mathbb{R}^m$ as the barycenter of the positions of the UAVs in $Path_{\beta}(i)$, namely
+
+\begin{equation}
+x_\beta^i = \tfrac{1}{\left|Path_{\beta}(i)\right|}\sum_{j\in Path_{\beta}(i)}p_j.
+\label{eq:barycenter}
+\end{equation}
+
+%}
+
+\noindent
+Considering the dynamics of the system introduced in~\eqref{eq:singleintegrator}, the control law is defined as follows:
+%\begin{equation}
+%u_i^r = \xi_i\tfrac{x_\beta^i - x_i}{\left\| x_\beta^i - x_i \right\|}\alpha\left(t\right),
+%\label{eq:controllaw}
+%\end{equation}
+
+\begin{equation}
+u_i^r = \xi_i\tfrac{x_\beta^i - p_i}{\left\| x_\beta^i - p_i \right\|}\alpha\left(t\right),
+\label{eq:controllaw}
+\end{equation}
+where $\alpha\left(t\right)\in\mathbb{R}$ is the linear velocity of the UAVs\footnote{We would like to remark that unlikely situations exist in which~\eqref{eq:controllaw} is not well defined, namely when $p_i = x_\beta^i$. However, this corresponds to the case where the $i$-th UAV is in the barycenter of its weakly connected 2-hop neighbors: hence, in practice, this never happens when a UAV detects itself as vulnerable. }.  %, that we assume constant for the sake of simplicity.
+The parameter $\xi_i$ is introduced to take into account the vulnerability state of a node $i$, i.e. $\xi_i=1$ if node $i$ identify itself as vulnerable or $\xi_i=0$ otherwise. As we aim at setting as vulnerable those UAVs $i$ exhibiting high values for $P_{\theta}(i)$, $\xi_i$ is defined as follows:
+
+\begin{equation}
+\xi_i=\left\{
+\begin{array}{ll}
+1 \quad & \text{if } P_{\theta}(i)>r\\
+0 \quad & \text{otherwise}
+\end{array}\right.
+\label{eq:probabilisticparam}
+\end{equation}
+where $r\in(0,1)$ is a random number drawn from a uniform distribution. Namely, if $P_{\theta}(i)>r$, then the $i$-th UAV considers itself as vulnerable. It is worth noting that~\eqref{eq:vulnerability} provides a decentralized methodology for each UAV to evaluate its vulnerability level.
+
+Summarizing, this control law drives vulnerable UAVs towards the barycenter of the positions of UAVs in their $Path_{\beta}$, thus decreasing their distance to those UAVs and eventually creating new edges in the communication graph. Considering that the exposure to threats needs to be reduced in our model, case the  barycenter of the positions of the UAV $u$ in their $Path_{\beta}$ is inside a threat region, this UAV does not move in this direction, i.e., $\xi_i=0$.

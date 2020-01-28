@@ -1,0 +1,136 @@
+\section{Overview}
+
+Consider a group of connected UAVs deployed in a convex or non-convex environment. Convex environments consist in a domain without obstacles, while non-convex environments include  free-standing  obstacles  areas  with non-convex boundaries \cite{breitenmoser2010}. This work focuses on non-convex environments, where the obstacles are the surveillance radars, that we will call threats. Our approach, however, also applies for convex environments.
+
+We consider that the UAVs are flying in constant altitude, therefore the environment can be represented by a bidimensional scenario composed by UAVs and threats. Moreover, we consider that each UAV is equipped with a radar responsible for communication. According to \cite{adamy2004}, in terms of signals frequency, communication signals are typically considered to be in the High Frequency (HF), Very High Frequency (VHF) or Ultra High Frequency (UHF). UAVs are able to communicate only with other UAVs within the same communication range. Given this communication topology, the collaborative UAV network can be represented by an undirected graph where each UAV is a vertex and each communication link between two UAVs is an edge of the graph. Figure \ref{fig:communicationLink} presents the communication topology in a collaborative UAV network.
+
+\begin{figure}[hbt!]
+      \centering            
+      \subfloat[Disconnected newtork.]{\includegraphics[width=0.35\textwidth]{Figures/conn1.png}} 
+      \subfloat[Connected network.]{\includegraphics[width=0.35\textwidth]{Figures/conn2.png}}   \\ \centering
+       \caption{Communication topology in a collaborative UAV network.}
+    \label{fig:communicationLink}
+\end{figure}
+
+
+Threats are represented by circles, defined by their center position (physical radar position) and detection range. In order to respond to threats, the UAVs must be able to detect them during flight. Given that the threat range is normally larger than the detection range of an UAV, the detection of these radars is often given by passive receivers, which can be used to detect radar emissions over considerable distances \cite{gross_2007}. In this regard, we consider that the UAVs are equipped with Radar Warning Receivers (RWRs), which are able to detect the emissions from the threats. 
+
+In this work, the UAV objective is to fly from the start position to a common goal position using a collaborative approach to detect and avoid threats, using an active stealth policy. To reproduce the scenario, we propose a simulation model over a time interval $t=[t_0..t_{max}]$. Since we do not consider lethal threats such as FCRs, all UAVs will achieve the goal. If all UAVs reach the goal before $t_{max}$, the mission is considered accomplished. A specific scenario consisting of UAVs performing collaborative tasks in hostile environments is presented in Figure \ref{fig:scenario}. In this figure, the threats are represented by the red circles.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\textwidth]{Figures/scenario.png}
+    \caption{An instance of the proposed scenario.}
+    \label{fig:scenario}
+\end{figure}
+
+Notice that, for this scenario, the UAV network is fragmented into two local networks, since these networks are further from each other than the communication range of the UAVs. Moreover, these local networks are totally independent. There will only be collaboration between these two networks if at least one UAV of each of the networks communicates, thus unifying the networks. The remainder of this chapter details the proposed model. 
+
+\section{Threat identification}
+
+Due to the fact that our model considers that the detection of threats by the UAVs is passive, it is important to differentiate the concepts of detection range and detectability range. According to \cite{adamy2004}, a radar's detection range is the range at which it can detect a target, while the detectability range is the range at which its signal can be received and detected by a receiver.
+ 
+This work is not focused on modelling electronic aspects of signals for the detection of a threat by the RWR or the detection of an UAV by a surveillance radar, but in modelling an stealth approach in collaborative UAV networks. Thus, the radar modelling is simplified as a range for detection. A threat is considered detected by an UAV if its range overlaps the RWR range, and an UAV is considered detected by a threat if the UAV is inside its detection range, as shown in Figure \ref{fig:rwr}. It is possible to notice that, in this case, the UAV is detecting the threat but the threat does not know about the presence of the UAV, because this is not in its detection range. 
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.40\textwidth]{Figures/rwr.png}
+\caption{Threat identification with RWR.}
+\label{fig:rwr}
+\end{figure}
+
+Beyond the knowledge about the presence of a radar, when the RWR detects a threat, the detection range of this threat must be estimated so that other UAVs can avoid this region. The first step to estimate the threat region consists in calculating the electronic position of the threat. According to \cite{exercito_2009}, the electronic positions are commonly estimated by two different approaches: Direction Find (DF) and Time of Arrival (TOA). The DF is the technique used in most electronic localization systems due to low cost and simplicity. It analyses the direction of the emitted electromagnetic waves and can be implemented by two distinct processes:
+
+\begin{itemize}
+    \item \textbf{Horizontal localization:} The electronic position of the target is estimated by receivers and special systems of antennas that allow to establish the direction of the emissions. If measurements are made from properly spaced points, the intersection of these directions will indicate a probable area of the sender's location. This technique can be implemented using two approaches: using several UAVs, that detects a threat simultaneously or with a single equipment, performing azimuth measurements in successive positions. Figure \ref{fig:horizontalLoc1} shows an example of horizontal localization using different UAVs, while Figure \ref{fig:horizontalLoc2} presents an example of horizontal localization using a single UAV in different moments. 
+        
+    \begin{figure}[h!]
+      \centering
+      \subfloat[Using different UAVs.]{\includegraphics[width=0.4\textwidth]{Figures/eletronicLocalization1.png}\label{fig:horizontalLoc1}}
+      \subfloat[Using a single UAV.]{\includegraphics[width=0.4\textwidth]{Figures/eletronicLocalization2.png}\label{fig:horizontalLoc2}}
+      \caption{Horizontal localization.}      
+    \end{figure}
+    
+    \item \textbf{Vertical localization:} The electronic position of the target is estimated by systems that use only one station to provide the coordinates of the opposing sender. In this technique, the direction of arrival and the height of the ionosphere are used to estimate the origin of the signal. This technique is only efficient for electromagnetic signals in the frequency range of HF, which suffer refraction in the ionospheric layer.
+\end{itemize}
+
+On the other hand, TOA consists in verifying the time between the electromagnetic pulses. This technique is more complex than DF, however it is more precise w.r.t. threat position estimation. If the exact moment at which the signal is emitted is known, for instance using an RWR, it is possible to estimate the threat's position. When the receptor detects the signal, a circumference is calculated with the distance between the receiver and the target. By intersecting two or more circles, it is possible to determine the location of the target \cite{exercito_2009}. In the same way that occur with Horizontal Location, this approach can be used by more than one UAV, as shown in Figure \ref{fig:DFOA1}, or using a single UAV in different moments, as shown in Figure \ref{fig:DFOA2}.
+
+   \begin{figure}[h!]
+      \centering
+      \subfloat[Using different UAVs.]{\includegraphics[width=0.49\textwidth]{Figures/eletronicLocalization4.png}\label{fig:DFOA1}}
+      \subfloat[Using a single UAV.]{\includegraphics[width=0.49\textwidth]{Figures/eletronicLocalization3.png}\label{fig:DFOA2}}
+      \caption{Difference time of Arrival.}      
+    \end{figure}
+
+The exact moment at which the signal is emitted is sometimes unknown. Even in this case, it is also possible to estimate the radar location by Time of Difference Arrival (TDOA), which  is a technique based on the premise that any transmitted signal will arrive at different times in the receiver on the ground. From some mathematical analysis, it is possible to draw parabolas that will coincide at a certain point to determine the coordinates of the emitting target \cite{exercito_2009}.
+
+This work does not intend to address the procedure of electronic localization and the error from position estimation. When an UAV detects the presence of a threat, it is assumed that the threat position is precisely known and its detection range can be calculated by:
+
+\begin{equation}
+R' = \sqrt{(P_x - P'_x)^2 + (P_x - P'_y)^2} - R,
+\label{eq:threatRange}
+\end{equation}
+
+where $R$ is the RWR range of the UAV, $P'$ is the threat's position and $R'$ is its detection range.
+
+Once we are considering that all the UAVs are equipped with an RWR, our model can uses a communication model based on intrusion detection described in \cite{farhan_2010}. Intrusion detection communication models can be classified into three groups:
+
+\begin{itemize}
+    \item \textbf{Standalone:} every node makes the detection without collaborating with others.
+    \item \textbf{Distributed and Cooperative:} each node detects intruders as in the standalone approach, but communicate with other mobile nodes to exchange attack data for supporting global decisions making and agreeing on responses
+    \item \textbf{Hierarchical:} the detection procedure is generally divided into small groups, such as clusters, and zones where some mobile nodes have more responsibility than others in the same group.
+
+\end{itemize}
+
+The Distributed and Cooperative is the model which most applies to our scenario. In our context the intruders are the threats. Based on this, every time an UAV detects a threat, a Depth-First Search procedure is applied in order to identify the UAVs that are connected to this node \cite{tarjan_1972}. These UAVs have their list of known threats updated and their path recalculated to avoid the new threat.
+
+For stealthiness purposes, the UAVs that detect a threat cannot continue sharing information while in a critical area, otherwise the content of the communication could be heard by an passive radar. Thus, a safety distance must be added to the estimated threat range. At this moment, we are considering this new threat range as the union of the communication range of the UAV and the estimated detection range of the threat. We named this as \emph{Virtual Range} of the threat.
+
+This approach is justified because we are assuming that the surveillance radars are in strategic locations, where it is essential to know the presence of enemy aircraft. Therefore, the probability of the presence of passive radars in this region is high, since some aircraft has some features that makes its detection harder by using surveillance radars. The UAVs may have different types of equipment, but for the collaborative approach adopted in this work, we consider that it is equipped with RWR and a communication radar. As the RWR is a signal receiver, it is not necessary to turn it off. Thus, the UAV will only turn the communication radar on again when the RWR does not detect the presence of any threat.  
+
+\section{UAVs displacement model}
+
+Given that each UAV state is its position $p_i\in\mathbb{R}^m$,  and \mbox{$p=\left[p_1^T\ldots p_N^T\right]^T\in\mathbb{R}^{N \times m}$} is the state vector of the multi-UAV system. Assume that each UAV can be modeled as a single integrator system and its velocity can be directly controlled, namely:
+
+\begin{equation}
+\dot{p}_i = u_i,
+\label{eq:singleintegrator}
+\end{equation}
+
+where $u_i\in \mathbb{R}^m$ is a control input.
+
+Consider a scenario where the UAVs must perform a mission using a collaboratively approach. Several factors must be taken into account in order to do so without compromising the success of the mission. For instance, the UAVs must avoid the enemy radars. Moreover, depending on the kind of mission, they must improve or decrease the coverage area, or improve the level of robustness to failures of the overall network. Based on this, the UAVs displacement can be modelled as a combination of control laws and adaptive gains. The combined control law for supporting the movement of UAV $u_i$  is then defined as:
+
+\begin{equation}
+u_i=\tau u_i^p + \sigma u_i^c + \rho u_i^r + \phi u_i^v
+\label{eq:integratedcontroller}
+\end{equation}
+
+where: 
+
+\begin{itemize}
+    \item $u_i^p$ is the control law responsible for the the path planning and enemy radars avoidance.
+    \item $u_i^c$ is the generalized connectivity maintenance control law;    
+    \item $u_i^v$ is the control law responsible for improving the coverage area;
+    \item $u_i^q$ is the control law responsible for improving the robustness to failures;    
+    \item $\tau$, $\sigma$, $\rho$ and $\phi$ are the adaptive gains of the control laws.
+\end{itemize} 
+
+This work extends the combined control law model described in Ghedini \cite{ghedini_2017}, by increasing the path planning control law $u_i^p$. This displacement model is based on differential equations. Notice that if an adaptive gain is zero, its corresponding control law is inactive, i.e, the UAV does not need to change its position regarding the respective control law. The control laws are addressed as follows. For instance, considering a scenario in which the gain settings are $\tau=1$, $\sigma=75$, $\phi=1$ and $\rho=0$. In this case, each UAV must move trough the planned path to increase both its sensing area, without increasing its robustness to failure, while keeping the global network connectivity and avoiding collision with other UAVs.
+
+There are different displacement models in literature, such as the described in He and Dai \cite{he_2013}. In this model, the movements of the UAVs are determined by optimization of factors under movement constraints with genetic algorithm.  A problem when using optimization models based on genetic algorithms is the computational cost for the model to converge. Considering that our scenario is very dynamic, where the drones need to recalculate their flight routes several times due to the detection of enemy radars, a model based on differential equations, such as described in Ghedini \cite{ghedini_2017}, ends up being more advantageous.
+
+\subsection{Path trajectory control law $u_i^p$}
+\input{Cap4/FlightPathControlLaw}
+
+\subsection{Connectivity maintenance control law $u_i^c$}
+\input{Cap4/ConnectivityMaitenanceControlLaw} \label{sec:connectivity}
+
+\subsection{Improve coverage area control law $u_i^v$}
+\input{Cap4/Coverage}
+
+\subsection{Robustness to failures $u_i^r$}
+\input{Cap4/Robustness} \label{sec:robustness}
+
+

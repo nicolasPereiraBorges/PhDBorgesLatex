@@ -1,0 +1,263 @@
+Flying towards the target the UAVs perform dynamic detection of the threats. Once a threat is detected, it is necessary to replan a trajectory to avoid this region. Each UAV autonomously calculates its own path. However, depending on the application, the UAVs should fly using different approaches. Thus, a procedure to define the goal position of UAVs using local information is necessary. This section presents the control law responsible for driving an UAV $u$ to follow a path that avoids the threat regions.
+
+\subsubsection{Flight path approaches}
+
+There are several flight formations for conventional airplanes, however some of them are not applicable to UAV scenarios because in the context of unmanned aircraft, there is no concept of a pilot's vision range. As aforementioned, this works consider that the sensing mechanisms usually present in UAVs are the radar for communication and the RWR. Therefore, the flight formation can only consider these.
+
+Different kind of missions may require different formations. We consider two kinds: a structured flight formation that minimizes the exposure of UAVs to threats and a unstructured flight approach that add mechanisms that allows coverage control and robustness to failure improvement. We describe these approaches in what follows.
+
+\subsubsection{Structured flight approach}
+
+According to \cite{giulietti_2000}, in a typical flight formation there are the roles of leader and wingmen. In this context, the wingmen follow the trajectory of the leader, taking the other aircrafts as a reference to keep its own position in the formation. The leader's responsibility is to define the trajectory to the goal. In a rigid flying formation, inter-aircraft distances must be kept constant. 
+ 
+In hostile environments, where the UAVs do not have information about the threat location, exposure should be reduced. In this sense, there is a flight formation, described in \cite{borges_2017}, named trail, that is used to air-to-ground attack on dangerous environments. Figure \ref{fig:trailFormation1} presents an example of the trail formation. The numbers above the UAVs correspond to their formation ranking ($id$). The UAV with $id$ $1$ is the leader of the connected component and responsible for calculating the trajectory to the goal, while the others are the wingmen, which always calculate the trajectory to the successor, i.e., the UAV that has $id = a -1$, where $a$ is the current UAV $i$. The problem with such formation is that the UAVs are not supported by any other UAV in formation, consequently, if one of them fails or is hit by an enemy, the UAV communication network can easily become disconnected.
+  
+\begin{figure}[ht]
+\centering
+\includegraphics[width=.45\textwidth]{Figures/trailFormation1.png}
+\caption{Trail formation for UAVs.}
+\label{fig:trailFormation1}
+\end{figure}
+
+For generating this formation, the UAV that is chosen to be the leader of a connected component of the network is the UAV that has the shortest path to the goal. The other UAVs' ranking are generated based on the length of their path to the leader: the closer an UAV is to the leader, the lower is its ranking position. The formation ranking, however, cannot be static because the connection between two UAVs may be lost. There are two reasons for connectivity loss between UAVs in the proposed scenario: the first one occurs because the distance between the UAVs are greater than its communication range. The second one is due to the fact that an UAV can turn off its communication radar. Thus, it is essential for the communication that these situations are detected so that UAVs take actions to reestablish the formation as quick as possible \cite{giulietti_2000}. 
+
+Another possible scenario where it is necessary to update the flight formation is when there are two connected components that are close enough to be merged. For updating  a flight formation, the number of connected UAVs within a formation ranking $1$ is verified. If there are more than one, the leader will be the UAV with formation ranking $1$ that has the shortest path to the goal. We choose as leader the UAV with the shortest path to goal instead of the UAV that is closest to the goal because, since the scenario contains threats that must be avoided and it is not possible to ensure that the UAV that is closest to goal will reach the goal earlier. Figure \ref{fig:trailFormation0} presents an example of scenario where two flight formations are merged. There are two UAVs with $id=1$. The one that is below is closest to goal, however, due to the presence of threats, its path to the goal is longer than the path of the other UAV with $id=1$.
+
+\begin{figure}[hbt!]
+      \centering            
+      \subfloat[Before merge formation.]{\includegraphics[width=0.35\textwidth]{Figures/trailFormation0.png}}      
+      \subfloat[After merge formation.]{\includegraphics[width=0.35\textwidth]{Figures/trailFormation0_1.png}}
+      \caption{Leader selection during a formation merging procedure.}     
+      \label{fig:trailFormation0}
+\end{figure}
+
+
+The other UAVs rank indexes are updated based on their distance to the new leader, as previously described. Figure  \ref{fig:trailFaulExample1} illustrates a connectivity loss, while the resulting ranking reconfiguration is presented in \ref{fig:trailFaulExample2}. On the other hand, Figure \ref{fig:MergeFormations} illustrates how two flight formations are merged.
+
+\begin{figure}[h!]
+      \centering            
+      \subfloat[Before fragmentation.]{\includegraphics[width=0.35\textwidth]{Figures/trailFormation2.png}\label{fig:trailFaulExample1}}      
+      \subfloat[After fragmentation.]{\includegraphics[width=0.35\textwidth]{Figures/trailFormation3.png}\label{fig:trailFaulExample2}}            
+      \caption{Connection fault example.}     
+      \label{fig:trailFaulExample}
+\end{figure}
+
+\begin{figure}[h!]
+      \centering            
+      \subfloat[Start scenario.]{\includegraphics[width=0.35\textwidth]{Figures/trailMerge1.png}}      
+      \subfloat[Update formation Id.]{\includegraphics[width=0.35\textwidth]{Figures/trailMerge2.png}}     \\
+      \subfloat[Start move UAVs.]{\includegraphics[width=0.35\textwidth]{Figures/trailMerge3.png}}      
+      \subfloat[Trail formation established.]{\includegraphics[width=0.35\textwidth]{Figures/trailMerge4.png}\label{fig:trailMerge4}}      
+      \caption{Merge two formations in trail.}     
+      \label{fig:MergeFormations}
+\end{figure}
+
+\subsubsection{Unstructured flight approach}
+
+Using a structured flight approach, such as the trail, does not make possible to change the UAVs position for different tasks, for instance for coverage area improvement, as the formation can be undone. The unstructured flight approach we are using consider that each UAV will calculate its own path to the goal. Therefore, there is no leadership between UAVs. Figure \ref{fig:unstructuredFlightFormation} illustrates a scenario in which the UAVs are flying using an unstructured flight formation. 
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=.45\textwidth]{Figures/unstructuredFormation.png}
+\caption{Example of unstructured flight formation.}
+\label{fig:unstructuredFlightFormation}
+\end{figure}
+
+There are different paths from a starting point to the goal using a non-deterministic algorithm for path planning such as RRT. In order to have a connected network, it is essential that the trajectories calculated by UAVs that are connected do not differ too much. In this context, it is possible to apply some curve similarity metric for evaluating how close two paths are in order to match them. There are several curve similarities metrics, two of them are the  Discrete Fr{\'e}chet Distance (DFD) and the Modified Hausdorff Distance (MHD).
+
+The DFD is a variation of the Fr{\'e}chet distance for using with polygons. This metric searches for all coupling possibilities between the polygon end points. Given two curves $f:[a, b] \rightarrow V $ and $g:[a_r, b_r] \rightarrow V$, the distance $D$ can be calculated as follows \cite{eiter_1994}: 
+
+\begin{equation}
+D = \delta(f,g) = \inf_{\alpha, \beta \in [0,1]} max[f(\alpha(t)), g(\beta(t))]
+\end{equation}
+
+The MHD is a variation of the Hausdorff distance. For applying this distance to two curves $f:[a, b] \rightarrow V $ and $g:[a_r, b_r] \rightarrow V$ , it is necessary to build a distance vector ($v$) for $f$ and a distance vector ($vr$) for $g$. Then, given a point $x \in f$, each position of $v$ is defined as the minimum distance from $x$ to the points belonging to $g$. In addition, given a point $y \in g$, each position of $vr$ is defined as the minimum distance from $y$ to the points belonging to $f$. The MHD is the maximum value between the average of $v$ and the average of $vr$. The closer the DFD or the MHD between two paths are to 0, the closer the paths are.  Our model uses the DFD for evaluating the path similarity \cite{dubuisson_1994}.
+
+We propose a matching procedure that consists in defining a reference path and, based on it, try to match the path of others UAVs to it. The first step to perform this procedure consists in finding the reference path. In this direction, the UAVs are grouped based on the similarity between their paths. If the DFD between two UAVs paths is less than a threshold, the UAVs are considered to belong to the same group. The reference path will be the path closest to the goal of the UAV that is inside the group with the large amount of UAVs. If there are two or more groups with the same amount of UAVs, the reference path will be the best candidate of those groups whose path is closest to the goal. The procedure of matching is iterative, as illustrated by the activity diagram in Figure \ref{fig:unstructuredFormationDiagram}. Figure \ref{fig:refPathMatching} presents the result of an application of the matching procedure. The current position of the UAVs are represented by the blue points, while the goal of the mission is represented by a red point. The black circles are the threats, with the continuous line constituting the detection range of the enemies radars, while the broken line represents the virtual range of the threat. Notice that all the paths become close to each other and, as a consequence, the likelihood of a network disconnection decreases, which is desirable for cooperative tasks.
+
+\begin{figure}[hbt!]
+\centering
+  \includegraphics[width= 0.5\linewidth]{Figures/unstructuredFormation1.png}
+  \caption{Activity diagram of the reference path matching procedure.} \label{fig:unstructuredFormationDiagram}
+\end{figure}
+
+\begin{figure}[hbt!]
+      \centering            
+      \subfloat[Before executing the path matching.]{\includegraphics[width=0.45\textwidth]{Figures/unstructuredFormation2.png}\label{fig:unstructured}}      
+      \subfloat[After executing the path matching.]{\includegraphics[width=0.45\textwidth]{Figures/unstructuredFormation3.png}\label{fig:unstructured2}}
+      \caption{Reference path matching example.}     
+      \label{fig:refPathMatching}
+\end{figure}
+
+The procedure used for computing the flight path planning in both flight formation approaches is addressed as follows. 
+
+\subsubsection{Flight path planning}
+
+Since each UAV knows the position that it must reach to accomplish the mission, each of them calculates its own path to the goal. There are two situations for path planning: when an UAV is inside a threat region (communication radar is turned off), and when a UAV is outside a threat region. With regard to the algorithm for path planning, the difference between these scenarios depends on the definition of the goal position. By default, the goal position of the UAVs is influenced by the approach they are flying. In the case of the structured formation, the wingmen follow the leaders. On the other hand, by using the unstructured approach there is no leadership. All the UAVs calculate the paths directly to the goal of the mission. The case when an UAV is exposed to a threat will be addressed later.
+
+Considering that RRT is a widely used technique for path planing with obstacle avoidance for UAVs, we use this algorithm as reference for computing the path planning. The Algorithm \ref{alg:rrt} shows how RRT computes the path planning from current position to a goal position. 
+
+\begin{algorithm}
+\caption{RRR algorithm - Compute path}\label{alg:rrt}
+\begin{algorithmic}[1]
+\Procedure{ComputePath}{$p_{current}$, $p_{goal}$, $p_{obstacles}$, $n_{edges}$, $e_{length}$, $n_{max}$} 
+\State $G\gets Graph(p_{current})$ \Comment{Current position is the first vertex of the graph.}
+\State $i\gets 1$
+\State $k\gets 1$
+\While{$k\leq=n_{edges} \And i\leq=n_{max}$}
+\State $q_{rand}\gets CreateRandomPoint()$
+\State $q_{near}\gets NearestVertex(q_{rand}, G)$
+\State $q_{new}\gets TruncateEdge(q_{near}, q_{rand}, e_{length})$
+\If{$\neg Intercept(q_{new}, p_{obstacles})$}
+\State $G.addVertex(q_{new})$
+\State $G.addEdge(q_{near}, q_{new})$
+\State $k\gets k+1$
+\EndIf
+\State $i\gets i+1$
+\EndWhile\label{euclidendwhile}
+\State $p_{near}\gets ClosestVertexToGoal(G, p_{goal})$ \Comment{Get vertex that is closer to the goal}
+\State $path\gets G.ShortestPath(1, p_{near})$
+\State \textbf{return} $path$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+A limitation of RRT is not consider the movement constraints of the UAVs. Thus, we use an adaptation of this method for avoiding invalid movements based on angle validation. RRT has as inputs a start point $p_0$, the number of branches $n_e$ and a distance $d$. The initial tree contains only $p_0$. Then, a random position in the scenario is generated and the nearest node $k_n$ to this position in the tree is searched. Once the node is identified, a line $l$ that passes along these two nodes is generated. Next, a line segment of length $d$, starting from $k_n$, is extracted from $l$. If the line segment does not pass thought any forbidden region (zone around a threat, in our case), this branch is added to the tree. This process is repeated until the number of branches is equal to $n_e$ or when the number of iterations is greater than a threshold. Taking into account that there is no guarantee that RRT will provide a feasible path to the goal, the UAVs will always move towards the nearest position of the goal $p_f$, considering the tree generated by RRT. The shortest path between the start position and $p_f$ is computed using the Dijkstra algorithm \cite{dijkstra_1959}.  The resulting tree is highlighted in Figure \ref{fig:rrt1}. 
+
+\begin{figure}[hbt!]
+\centering
+\includegraphics[width=.7\textwidth]{Figures/rrt1.png}
+\caption{Path generated by RRT.}
+\label{fig:rrt1}
+\end{figure}
+
+\subsubsection{Angle validation}
+
+Since it is more important for the present model to evaluate the behavior of the UAV network according to a stealth policy and a combined control law and not modeling a large set of handling dynamical restrictions, such as yaw and pitch angles, described in \cite{he_2013}, we adopt a single handling constraint, which is the angle variation between movements.
+
+Every time a UAV moves from position $P_1$ to a new position $P_2$ the angle between these points is calculated. The equation for calculating the angle $\epsilon$ between  $P_1$ and $P_2$ is described by:
+
+\begin{equation}
+    \epsilon = atan2(y,x), 
+\end{equation}
+
+where $y$ is the difference between the y-axes value of $P_1$ and $P_2$ and $x$ is the is the difference between the x-axes value of $P_1$ and $P_2$. The function $atan2(y,x)$ is the function $tan^{-1}(\frac{y}{x})$, limiting the resulting angle in the range of $[-pi, pi]$.
+
+For avoiding invalid movements, an UAV movement will only be considered valid if the angle generated by the new and current positions is in a specific range, as illustrated in Figure \ref{fig:flightAngle}. In this figure, the UAV flights from position $P_{i-1}$ to $P_i$. The angle between $P_i$ and the next movement must not exceed the max angle variation $\theta$, otherwise it will be considered an invalid movement.
+
+\begin{figure}[hbt!]
+\centering
+\includegraphics[width=.6\textwidth]{Figures/angleVariation.png}
+\caption{Angle validation of UAV movement}
+\label{fig:flightAngle}
+\end{figure}
+
+In terms of implementation, a solution to use this approach is to adapt the RRT algorithm to only generate branches of the tree if the angle generated by the new intermediate goal point and the nearest node in the tree is in a specific range. Figure \ref{fig:pathWithAngleRestriction} presents the resulting branches (black lines) and the path generated by the execution of RRT (green lines) with and without angle restrictions for different values of $\epsilon$. The red circles represents the threats.
+
+\begin{figure}[hbt!]
+      \centering            
+      \subfloat[Resulting path with $\epsilon$ = 90$\degree$. ]{\includegraphics[width=0.45\textwidth]{Figures/rrt90.PNG}}      
+      \subfloat[Resulting path with $\epsilon$ = 60$\degree$.]{\includegraphics[width=0.45\textwidth]{Figures/rrt60.PNG}}  \\ \centering
+      \subfloat[Resulting path with $\epsilon$ = 45$\degree$.]{\includegraphics[width=0.45\textwidth]{Figures/rrt45.PNG}} \caption{Generated path with angle validation.}
+      \label{fig:pathWithAngleRestriction}     
+\end{figure}
+
+\subsubsection{Path reduction}
+
+Since the output of RRT is a set of consecutive lines, it is possible to optimize the path to reduce its length. This procedure consists in attempting to trace the longest lines as possible between path vertexes. Figure \ref{fig:pathReduce} illustrates an example of the path reduction procedure, notice that it significantly changes the original path provided by RRT. It is important to note that the new lines are restricted to the valid angle range condition aforementioned.
+
+\begin{figure}[hbt!]
+\centering
+\includegraphics[width=0.9\textwidth]{Figures/RRT_Reduce.png}
+\caption{Path reduction example.}
+\label{fig:pathReduce}
+\end{figure}
+
+The result of the procedure to reduce paths provides a path where the vertices are located at varying distances. The UAV needs to move by following the path according to a reference speed, then it is necessary to know the position that the UAV would be at the moment $t$ within the previously computed path. Thus, by using interpolations, new equidistant vertexes are generated \cite{davis_1975}. The distance between them is proportional to the speed of the UAV.
+
+\subsubsection{Path smoothing}
+
+RRT provides, as output, a linear piecewise representation of the trajectory. Thus, it may be necessary to apply a path smoothing method for generating feasible trajectories, as highlighted in \cite{borges_2016}. The smoothing procedure considered here is based on an algorithm proposed to perform horizontal segmentation of highways \cite{coelho_2015}. The first step of this algorithm consists of identifying the instant that the angular coefficient varies, as shown in Figure \ref{fig:pathSmoothing1}. Given these moments, a set of neighbours are selected, as presented in Figure \ref{fig:pathSmoothing2}. 
+
+\begin{figure}[h!]
+      \centering            
+      \subfloat[Detection of angular coefficient variation.] {\includegraphics[height=0.35\textwidth,width=0.45\textwidth]{Figures/PathSmoothing1.eps}\label{fig:pathSmoothing1}}      
+      \subfloat[Derfining in neighbourhood.]{\includegraphics[height=0.35\textwidth,width=0.45\textwidth]{Figures/PathSmoothing2.eps}\label{fig:pathSmoothing2}}  \\ \centering
+      \caption{Angular coefficient variation detection.}
+\end{figure}
+
+Taking into account the set of computed points, a circle is fit \cite{coope_1993}, resulting in the radius and center coordinates of the circle that best adjust to the set of points, as shown in Figure  \ref{fig:pathSmoothing3}. Computed the circle fitting, it is necessary to select the points in the circles that correspond to the points of the neighborhood used for fitting, as presented in Figure \ref{fig:pathSmoothing4}. 
+
+\begin{figure}[h!]
+      \centering            
+      \subfloat[Circle fitting.]{\includegraphics[height=0.35\textwidth,width=0.45\textwidth]{Figures/PathSmoothing3.eps}\label{fig:pathSmoothing3}}      
+      \subfloat[Select points in circles.] {\includegraphics[height=0.35\textwidth,width=0.45\textwidth]{Figures/PathSmoothing4.eps}\label{fig:pathSmoothing4}}  \\ \centering
+      \caption{Circle fitting procedure}
+\end{figure}
+
+The next step consists in replacing the neighbourhood points by the points in the generated circles, as shown in Figure \ref{fig:pathSmoothing5}. Finally, a moving average procedure is executed in order to match lines and curve regions \cite{azami_2012}. Figure \ref{fig:pathSmoothing6} illustrates the path after the execution of successive moving average procedures.
+
+\begin{figure}[h!]
+      \centering            
+      \subfloat[Replacing points in neighbourhood] {\includegraphics[height=0.35\textwidth,width=0.45\textwidth]{Figures/PathSmoothing5.eps}\label{fig:pathSmoothing5}}      
+      \subfloat[Path after moving average procedure.] {\includegraphics[height=0.35\textwidth,width=0.45\textwidth]{Figures/PathSmoothing6.eps}\label{fig:pathSmoothing6}}  \\ \centering
+      \caption{Path after path smoothing procedure.}
+\end{figure}
+
+\subsubsection{Computing the goal for an UAV in a threat region}
+
+The stealth policy of turning off the communication radar adopted here consider that the UAV that enters a threat region cannot communicate with other UAVs. Moreover, the UAV must trace a path to leave the area of the threat. In this sense, there are two approaches for computing the goal, which is used as reference for path planning, to leave the threat region: the first one implies leaving the threat region quickly, while the other approach consists in computing the goal position in a region that the other UAVs of the formation will possibly pass through, thus improving the chance for the UAV that turned off the radar to regroup with the others.
+
+The procedure for computing a goal for the UAV in a threat region assumes that each UAV knows its own position $p_i$ and its neighbor positions $p_{\mathcal{N}_i}=\{p_j,\forall j\in\mathcal{G}: i,j \in \mathcal{E}\left(\mathcal{G}\right)\}$.
+
+The first step consists in generating candidate points that allows the UAV to leave the threat region. An UAV has two candidate points $P_i'$ and $P_i''$, one at each direction. These points are obtained from the equation of the line $L_{Proj}$ that passes through the last position of the UAV $P_{i-1}$ and its current position $P_i$. The candidate points  $P_i'$ and $P_i''$ are the first points that are outside the threat, considering the line $L_{Perp}$ which is perpendicular to $L_{Proj}$ and pass through the center of the threat. Figure \ref{fig:LeaveThreat1} illustrates the procedure to compute the candidate points.
+
+\begin{figure}[hbt!]
+\centering
+\includegraphics[width=0.65\textwidth]{Figures/leaveThreat1.png}
+\caption{Candidate points for computing path planning to leave threat region}
+\label{fig:LeaveThreat1}
+\end{figure}
+
+The next candidate point $P_i'''$ results from the estimation of future positions of connected UAVs. While in the trail formation, we have the leader and the wingmen, in the unstructured approach there is no leadership. Therefore, the procedure for estimating the future position of UAVs is different for these flight formation approaches and are described as follows.
+
+\subsubsection{Trail formation}
+
+The procedure for estimating the future position of the UAVs flying using the trail formation is straightforward. The UAV that is exposed to a threat will compute the path to the goal, considering that is in the last position of its successor into the flight formation. 
+
+RRT it is not a stochastic algorithm, thus it is not ensured that the path of the successor and the estimated path will coincide. On the other hand, because of threat avoidance, the angle validation and the path reduction procedure, the chance of these paths coinciding is high. The estimated path position $P_i'''$ is the point in the computed path that is closest to the previously computed candidates $P_i'$ and $P_i''$, as shown in Figure \ref{fig:LeaveThreat2}.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.8\textwidth]{Figures/leaveThreat2.png}
+\caption{Candidate points for computing path planning to regroup with the other UAVs.}
+\label{fig:LeaveThreat2}
+\end{figure}
+
+\subsubsection{Unstructured flight approach}
+
+Considering that there is no leadership in the unstructured flight approach, it is not possible to estimate the future position of UAVs by computing the path of an UAV's successor in formation. Thus, it is necessary to consider the paths of all UAVs that are connected with the UAV that turned off the communication radar
+
+The UAV that is exposed to a threat will compute the paths to the goal of all its neighbours. Thus, the UAVs are clustered based on the DFD between their computed paths. Whether the DFD between two UAVs' paths is lower than a threshold, these are considered belonging the same group. A large amount of UAVs in the same group indicates that the most part of UAVs tends to fly using a nearby path. Therefore, the chance of estimating correctly the future position of the UAVs increases. In this direction, considering that maybe exist more than a group with the same amount of UAVs, for each path in the groups with the most amount of UAVs, the points $P_i^j$ that are close to the previously computed candidates $P_i'$ and $P_i''$ are selected. 
+
+The next step consists in compute the average point $P_i^javg$ for each previously computed points $P_i^j$. Then, the estimated path position $P_i'''$ is the point $P_i^javg$ which results int the shortest path length between current UAV position and $P_i^javg$. By using this approach, we improve the chance of the UAV reconnect with other uavs due to the fact that we drive the UAV to a position in which the most UAVs of the network will probably pass near.
+
+\subsubsection{Selection of the best candidate point}
+
+Once the candidate points $P_i'$, $P_i''$ and $P_i'''$ were computed, it is necessary to establish the criterion for which candidate point should be the goal of the UAV. If $P_i'''$ exists\footnote{$P_i'''$ can only be computed in the case that the UAV is connected to another UAV.}, this point is outside a threat region and the path length from the current UAV position to $P_i'''$ does not exceed a maximum length threshold $L_{max}$, this candidate point is selected to be the goal. Otherwise, the choice is between $P_i'$ and $P_i''$. Thus, the goal is the candidate that is outside a threat region, whose path length between the current UAV position and these two candidate points is smaller. 
+
+Notice that if there is no candidate point that meets the constraints, for instance in the case of all candidates inside threat regions, the goal that supports the path planning to leave the threat region will be the goal of the mission. However, in order to avoid flying over the physical position of the radar (center of threat region), the path planning consider the threat range to be lower than it actually is, making the UAV fly across the edges of the detection range. 
+
+\subsubsection{Displacement model}
+
+The objective of this control law is to drive the UAV $u$ to follow a path that avoids the threat regions, given a path $Path\gamma(u)$ of the UAV $u$, located at the position $p_i$ at a moment $t$. By using interpolation, it is possible to estimate the position $x_\gamma^i$ in which the UAV should be at a moment $t+1$, following $Path\gamma(u)$. Notice that the distance from positions $p_i$ and $x_\gamma^i$ is  parameterized and impacts the speed of the UAV in our model. Thus, the control law that drives the UAV $u$ to follow the path planning is defined by:
+
+\begin{equation}
+u_i^p = \tfrac{x_\gamma^i - p_i}{\left\| x_\gamma^i - p_i \right\|}\beta\left(t\right),
+\label{eq:controllawPathPlanning}
+\end{equation}
+where $\beta\left(t\right)\in\mathbb{R}$ is the linear velocity of the UAVs.
+
+Due to the performance purposes the path planning algorithm does not have to be executed at each iteration $t$. For instance, considering a scenario where the UAV $u$ does not shut down its communication radar and that the straight segment that passes through $p_i$ and $x_\gamma^i$ does not intercept any threat regions, and the generated angle between $p_i$ and $x_\gamma^i$ is within the range $\theta$, instead of running RRT again it is possible to update the previously computed path. The case in which the UAV is inside a threat region is analogous. However, when the UAV turns on the communication radar again, the path needs to be recalculated.
+
+In this sense, before performing the RRT algorithm, the proposed model always verifies if it is possible to trace a line from the current position of the UAV to the goal position without passing through any threat, considering the angle validation constraint. This approach reduces the overall execution time, since the path planning algorithm does not need to be computed all the time.
